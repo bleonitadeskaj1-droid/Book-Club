@@ -1,6 +1,5 @@
-/**
- * Root app placeholder. Replace with your navigation/layout.
- */
+import BookListScreen from './screens/BookListScreen';
+
 export default function App() {
-  return null;
+  return <BookListScreen />;
 }
