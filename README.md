@@ -84,7 +84,7 @@ A comprehensive React Native Expo application for book enthusiasts to discover, 
 4. **Read Books**: Access full book content
 
 ### For Admins
-1. **Login**: Use `admin@gmail.com` / `123456`
+1. **Login**
 2. **User Management**: View and delete users from admin panel
 3. **Book Management**: Add new books to the catalog
 4. **Profile Settings**: Manage admin profile and avatar
@@ -109,10 +109,6 @@ Update `supabase.js` with your Supabase credentials:
 const supabaseUrl = 'your-supabase-url';
 const supabaseAnonKey = 'your-anon-key';
 ```
-
-### Admin Credentials
-- **Email**: `admin@gmail.com`
-- **Password**: `123456`
 
 ## 🐛 Troubleshooting
 
