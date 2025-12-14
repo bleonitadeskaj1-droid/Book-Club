@@ -44,7 +44,7 @@
 
 ### Tasks Completed:
 1. **Admin Authentication**
-   - Implemented hardcoded admin login (admin@gmail.com/123456)
+   - Implemented hardcoded admin login 
    - Created separate auth flow for admin vs regular users
    - Added admin role detection and routing
 
