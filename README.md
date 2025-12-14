@@ -6,7 +6,7 @@ A comprehensive React Native Expo application for book enthusiasts to discover, 
 
 ### 🔐 Authentication & User Management
 - **User Registration**: Secure signup with email confirmation
-- **User Login**: Email/password authentication with Supabase
+- **User Login**: Email/password authentication with Supabase 
 - **Admin Access**: Hardcoded admin login (`admin@gmail.com` / `123456`)
 - **Session Management**: Persistent login sessions across app restarts
 
