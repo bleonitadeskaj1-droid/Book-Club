@@ -1,0 +1,139 @@
+===============================================
+AI CHANGELOG: Book Club App
+===============================================
+Last Updated: January 19, 2026
+
+RECENT CHANGES & IMPROVEMENTS
+===============================================
+
+## Session: Platform-Aware Navigation & UI Finalization
+
+### Changes Made:
+
+1. **Profile as Default Tab for Non-Admin Users**
+   - File: App.js
+   - Change: Non-admin users now land on Profile tab by default after login
+   - Previous: Landed on Books tab
+   - Impact: Better user experience - users see their profile immediately upon login
+   - Admin users still route to Admin tab as before
+
+2. **Platform-Aware Logout Implementation**
+   - Files: AdminScreen.js, ProfileScreen.js
+   - Change: Logout uses window.confirm on web, Alert.alert on native
+   - Reason: Native Alert ineffective for dismissing web modals
+   - Impact: Logout now works reliably on both web and mobile platforms
+
+3. **Admin Screen UI Updates (Previous Session)**
+   - File: AdminScreen.js
+   - Changes:
+     * Text/icon colors: white (#fff) → black (#1a1a1a) for contrast
+     * AI Button: purple theme → cream palette (#E8DCC4) with professional shadow
+     * Book cover height: standardized to scaleSize(200) for consistency
+     * Style corruption fixed: restored deleteButton and buttonText style blocks
+   - Impact: Professional, readable admin interface; cream design harmony
+
+4. **Book Detail Loading Fix (Previous Session)**
+   - File: BookDetailScreen.js
+   - Change: loadBookData no longer waits indefinitely for user-specific data when unauthenticated
+   - Previous: Card click showed only loading spinner
+   - Impact: Unauthenticated users can view basic book details without waiting
+
+5. **Uniform Card Layout (Previous Session)**
+   - File: BookListScreen.js
+   - Changes:
+     * Introduced CARD_WIDTH = 320 for consistent dimensions
+     * Grid container: centered wrap layout with responsive gaps
+     * Replaced purple accents (#8b5cf6, #ede9fe, #f5f3ff) with cream variants
+   - Impact: Identical card dimensions and layout across web/mobile
+
+6. **Cream Palette Implementation (Previous Session)**
+   - Primary: #E8DCC4
+   - Primary Dark: #D4C5A9
+   - Primary Light: #F5F5DC
+   - Status: Reading (orange #f59e0b), Finished (green #10b981), To-Read (cream variants)
+   - Impact: Professional, cohesive visual identity
+
+### Known Status:
+
+✅ COMPLETE:
+- Platform-aware logout working on web and mobile
+- Non-admin users default to Profile tab
+- Admin screen protected by email check (admin@gmail.com only)
+- Cream palette applied across all screens
+- Card dimensions unified (320px)
+- Grid layouts centered and responsive
+- Book detail loading guard in place
+- No compile errors
+
+🔒 SECURITY:
+- Admin-only access: email-based (admin@gmail.com only)
+- RLS policies enforce database-level security
+- Auth state managed globally
+- Non-admin users cannot access Admin tab
+
+📱 RESPONSIVE DESIGN:
+- Mobile: Single column cards, wrap layout, scaleSize helpers
+- Tablet: 2-column grid, same card width for consistency
+- Web: Full responsive with centered content
+
+### Testing Notes:
+
+1. Non-admin Login Flow:
+   - Log in with regular user account
+   - Should land on Profile tab (not Books)
+   - Profile tab shows user's reading lists and settings
+
+2. Admin Login Flow:
+   - Log in with admin@gmail.com
+   - Lands on Admin tab
+   - Full book/user/review/analytics management available
+
+3. Logout Testing:
+   - Web: window.confirm dialog appears
+   - Mobile: Native Alert dialog appears
+   - Both successfully clear session and return to public browse
+
+4. Card Click:
+   - Click any book card from home
+   - Detail modal opens immediately (no infinite loading)
+   - Can read/review even without account
+
+### Files Modified (This Session):
+- App.js (navigation defaults, tab routing)
+
+### Files Modified (Recent Sessions):
+- AdminScreen.js (logout, text colors, button styles, cover height)
+- BookListScreen.js (card width, grid layout, purple cleanup)
+- BookDetailScreen.js (unauthenticated loading guard)
+- ProfileScreen.js (platform-aware logout)
+
+### Architecture Notes:
+
+**Navigation Flow:**
+1. Public user: Books tab visible (default)
+2. Non-admin login: Switches to Profile tab (default)
+3. Admin@gmail.com login: Switches to Admin tab
+4. Any logout: Returns to Books tab (public browse)
+
+**Component Hierarchy:**
+- App.js (root, session management, tab routing)
+  ├── BookListScreen (public, search/filter/browse)
+  ├── AdminScreen (admin-only, books/users/reviews/analytics)
+  ├── ProfileScreen (protected, user profile, reading lists)
+  ├── BookDetailScreen (modal, details, reviews, read action)
+  └── ReaderScreen (modal, page display, progress)
+
+**State Management:**
+- session: Supabase auth session
+- activeTab: Current tab (books/profile/admin)
+- role: User role (user/admin)
+- Modals: showProfileModal, showBookDetail, showReader, showLoginModal
+
+### Error Handling:
+- All async operations wrapped in try/catch
+- User-facing errors via Alert.alert
+- Console logging for debugging (✅ = success, ❌ = error)
+
+===============================================
+END OF LOG
+===============================================
