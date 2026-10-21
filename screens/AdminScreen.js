@@ -38,14 +38,13 @@ const COLORS = {
   success: '#10b981',
 };
 
-export default function AdminScreen({ session, onLogout }) {
-  // ACCESS CONTROL: Only admin@gmail.com can access
+export default function AdminScreen({ session, role, onLogout }) {
   useEffect(() => {
-    if (!session?.user?.email || session.user.email !== 'admin@gmail.com') {
-      Alert.alert('Access Denied', 'You do not have permission to access this area.');
+    if (role && role !== 'admin') {
+      Alert.alert('Access denied', 'This area is for administrators.');
       if (onLogout) onLogout();
     }
-  }, [session]);
+  }, [role]);
 
   const [books, setBooks] = useState([]);
   const [users, setUsers] = useState([]);
@@ -70,22 +69,20 @@ export default function AdminScreen({ session, onLogout }) {
 
   const fetchUsers = async () => {
     try {
-      // Import supabaseAdmin for server-side operations
-      const { supabaseAdmin } = require('../supabase');
-      
-      // Fetch users from Supabase Auth using admin client
-      const { data: { users }, error } = await supabaseAdmin.auth.admin.listUsers();
-      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, full_name, username, role, created_at')
+        .order('created_at', { ascending: false });
+
       if (error) {
-        console.error('❌ Users fetch error:', error);
+        console.error('Users fetch error:', error);
         Alert.alert('Error', 'Failed to load users');
         setUsers([]);
       } else {
-        console.log('✅ Loaded users from Auth:', users?.length || 0);
-        setUsers(users || []);
+        setUsers(data || []);
       }
     } catch (err) {
-      console.error('❌ Exception fetching users:', err);
+      console.error('Exception fetching users:', err);
       Alert.alert('Error', 'Failed to load users: ' + err.message);
       setUsers([]);
     }
@@ -132,13 +129,13 @@ export default function AdminScreen({ session, onLogout }) {
       const userIds = [...new Set(reviewsData.map(r => r.user_id))];
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, email, full_name')
+        .select('id, full_name, username')
         .in('id', userIds);
 
       // Combine data
       const enrichedReviews = reviewsData.map(review => {
         const book = booksData?.find(b => b.id === review.book_id) || { title: 'Unknown Book' };
-        const profile = profilesData?.find(p => p.id === review.user_id) || { email: 'Anonymous' };
+        const profile = profilesData?.find(p => p.id === review.user_id) || { full_name: 'Member' };
         return {
           ...review,
           books: book,
@@ -479,8 +476,8 @@ export default function AdminScreen({ session, onLogout }) {
             <View style={styles.userCard}>
               <Ionicons name="person-circle" size={scaleSize(40)} color={COLORS.primary} />
               <View style={styles.userInfo}>
-                <Text style={styles.userEmail}>{item.email || 'No email'}</Text>
-                <Text style={styles.userId}>ID: {item.id}</Text>
+                <Text style={styles.userEmail}>{item.full_name || item.username || 'Member'}</Text>
+                <Text style={styles.userId}>{item.role === 'admin' ? 'Administrator' : 'Member'}</Text>
                 <Text style={styles.userDate}>
                   Created: {new Date(item.created_at).toLocaleDateString()}
                 </Text>
@@ -537,7 +534,7 @@ export default function AdminScreen({ session, onLogout }) {
 
               {/* Author & Date */}
               <Text style={styles.reviewAuthor}>
-                By: {item.profiles?.email || item.profiles?.full_name || 'Anonymous'} • {new Date(item.created_at).toLocaleDateString()}
+                By: {item.profiles?.full_name || item.profiles?.username || 'Member'} • {new Date(item.created_at).toLocaleDateString()}
               </Text>
             </View>
           )}

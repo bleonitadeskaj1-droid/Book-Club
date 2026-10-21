@@ -240,8 +240,7 @@ export default function ReaderScreen({ book, onClose, session, onRequireAuth }) 
 
   if (!book || !book.content) {
     return (
-      <Modal visible={true} animationType="slide" transparent={false}>
-        <View style={styles.container}>
+      <View style={styles.container}>
           <View style={styles.header}>
             <TouchableOpacity onPress={onClose} style={styles.backButton}>
               <Ionicons name="chevron-back" size={28} color={COLORS.primary} />
@@ -263,7 +262,6 @@ export default function ReaderScreen({ book, onClose, session, onRequireAuth }) 
             </Text>
           </View>
         </View>
-      </Modal>
     );
   }
 
@@ -271,8 +269,7 @@ export default function ReaderScreen({ book, onClose, session, onRequireAuth }) 
   const currentLineHeight = LINE_HEIGHTS[fontSize];
 
   return (
-    <Modal visible={true} animationType="slide" transparent={false}>
-      <View style={[styles.container, { opacity: brightness }]}>
+    <View style={[styles.container, { opacity: brightness }]}>
         {isRestoringPosition && (
           <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color={COLORS.primary} />
@@ -488,7 +485,6 @@ export default function ReaderScreen({ book, onClose, session, onRequireAuth }) 
           </View>
         </View>
       </View>
-    </Modal>
   );
 }
 

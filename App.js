@@ -37,7 +37,7 @@ export default function App() {
   const [showLoginModal, setShowLoginModal] = useState(false); // For protected actions
   const [pendingAction, setPendingAction] = useState(null); // Store action to execute after login
 
-  // Helper: determine admin status based ONLY on email
+  // Role comes from profiles.role, never from the email address.
   const resolveUserRole = async (sessionObj) => {
     try {
       if (!sessionObj?.user) {
@@ -47,22 +47,23 @@ export default function App() {
         return 'user';
       }
 
-      const userEmail = sessionObj.user.email || '';
-      const isAdmin = userEmail === 'admin@gmail.com';
-      
-      console.log('🔐 resolveUserRole: checking email', {
-        email: userEmail,
-        isAdmin,
-      });
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', sessionObj.user.id)
+        .maybeSingle();
 
-      // Admin check: ONLY by email, no other logic
+      if (error) {
+        console.error('Profile role lookup failed:', error.message);
+      }
+
+      const isAdmin = profile?.role === 'admin';
+
       if (isAdmin) {
-        console.log('✅ Admin detected:', userEmail);
         setRole('admin');
         setActiveTab('admin');
         return 'admin';
       } else {
-        console.log('✅ User (non-admin):', userEmail);
         setRole('user');
         setActiveTab('profile');
         return 'user';
@@ -86,20 +87,9 @@ export default function App() {
     // Initialize auth in background (non-blocking)
     const initApp = async () => {
       try {
-        // Check for hardcoded admin session first
         const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-        const fakeAdminData = await AsyncStorage.getItem('fake-admin-session');
-        
-        if (fakeAdminData) {
-          console.log('🔑 HARDCODED ADMIN SESSION FOUND');
-          const fakeSession = JSON.parse(fakeAdminData);
-          setSession(fakeSession);
-          setRole('admin');
-          setActiveTab('admin');
-          console.log('✅ Admin session restored (hardcoded)');
-          return; // Skip Supabase check
-        }
-        
+        await AsyncStorage.removeItem('fake-admin-session');
+
         // Normal Supabase session check
         console.log('📡 Checking auth session...');
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -162,43 +152,12 @@ export default function App() {
     };
   }, []);
   
-  // Check for fake admin session when login modal closes
-  useEffect(() => {
-    const checkAdminSession = async () => {
-      try {
-        const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-        const fakeAdminData = await AsyncStorage.getItem('fake-admin-session');
-        
-        if (fakeAdminData && !session) {
-          console.log('🔑 Fake admin session detected after modal close');
-          const fakeSession = JSON.parse(fakeAdminData);
-          setSession(fakeSession);
-          setRole('admin');
-          setActiveTab('admin');
-          setScreen('main');
-          console.log('✅ Admin session restored');
-        }
-      } catch (err) {
-        console.error('Error checking admin session:', err);
-      }
-    };
-    
-    // Check when login modal is closed
-    if (!showLoginModal) {
-      checkAdminSession();
-    }
-  }, [showLoginModal]);
-  
-  // Handle logout (including fake admin)
   const handleLogout = async () => {
-    console.log('🚪 Logging out...');
-    
-    // Clear fake admin session if exists
     try {
       const AsyncStorage = require('@react-native-async-storage/async-storage').default;
       await AsyncStorage.removeItem('fake-admin-session');
     } catch (err) {
-      console.error('Error clearing admin session:', err);
+      console.error('Error clearing stored session:', err);
     }
     
     // Clear Supabase session
@@ -250,7 +209,7 @@ export default function App() {
               />
             ) : activeTab === 'admin' && role === 'admin' ? (
               // Admin screen - ADMIN ONLY
-              <AdminScreen session={session} onLogout={handleLogout} />
+              <AdminScreen session={session} role={role} onLogout={handleLogout} />
             ) : activeTab === 'profile' && !showProfileModal && session?.user ? (
               // Profile screen - PROTECTED (requires authentication)
               <ProfileScreen
@@ -299,7 +258,7 @@ export default function App() {
             )}
 
             {/* Profile Modal Overlay */}
-            {showProfileModal && session?.user && (
+            {showProfileModal && session?.user && !showReader && (
               <View style={styles.modalOverlay}>
                 <ProfileScreen
                   session={session}
@@ -307,6 +266,7 @@ export default function App() {
                   onClose={() => setShowProfileModal(false)}
                   onRead={(book) => {
                     setSelectedBook(book);
+                    setShowProfileModal(false);
                     setShowReader(true);
                   }}
                 />
@@ -314,33 +274,39 @@ export default function App() {
             )}
 
             {/* Book Detail Screen (Modal overlay) */}
-            {showBookDetail && selectedBook && !showProfileModal && (
-              <BookDetailScreen
-                book={selectedBook}
-                session={session}
-                onClose={() => setShowBookDetail(false)}
-                onRead={(book) => {
-                  setSelectedBook(book);
-                  setShowReader(true);
-                }}
-                onRequireAuth={(callback) => {
-                  setPendingAction(() => callback);
-                  setShowLoginModal(true);
-                }}
-              />
+            {showBookDetail && selectedBook && !showProfileModal && !showReader && (
+              <View style={styles.modalOverlay}>
+                <BookDetailScreen
+                  book={selectedBook}
+                  session={session}
+                  onClose={() => setShowBookDetail(false)}
+                  onRead={(book) => {
+                    setSelectedBook(book);
+                    setShowBookDetail(false);
+                    setShowReader(true);
+                  }}
+                  onRequireAuth={(callback) => {
+                    setPendingAction(() => callback);
+                    setShowLoginModal(true);
+                  }}
+                />
+              </View>
             )}
 
-            {/* Reader Screen (Modal overlay) */}
-            {showReader && selectedBook && !showProfileModal && (
-              <ReaderScreen
-                book={selectedBook}
-                onClose={() => setShowReader(false)}
-                session={session}
-                onRequireAuth={(callback) => {
-                  setPendingAction(() => callback);
-                  setShowLoginModal(true);
-                }}
-              />
+            {showReader && selectedBook && (
+              <View style={styles.modalOverlay}>
+                <ReaderScreen
+                  book={selectedBook}
+                  onClose={() => {
+                    setShowReader(false);
+                  }}
+                  session={session}
+                  onRequireAuth={(callback) => {
+                    setPendingAction(() => callback);
+                    setShowLoginModal(true);
+                  }}
+                />
+              </View>
             )}
 
             {/* Login Modal for Protected Actions */}

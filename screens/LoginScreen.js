@@ -62,50 +62,6 @@ export default function LoginScreen({ onNavigate, onClose }) {
     setError('');
     
     try {
-      // HARDCODED ADMIN LOGIN (Demo/Development Only)
-      if (normalizedEmail === 'admin@gmail.com' && password === '123456') {
-        console.log('🔑 HARDCODED ADMIN LOGIN DETECTED');
-
-        // Create fake admin session
-        const fakeAdminSession = {
-          user: {
-            id: 'admin-hardcoded-id',
-            email: 'admin@gmail.com',
-            role: 'admin',
-            aud: 'authenticated',
-            created_at: new Date().toISOString(),
-          },
-          access_token: 'fake-admin-token',
-          refresh_token: 'fake-admin-refresh',
-        };
-        
-        // Store in AsyncStorage for persistence
-        const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-        await AsyncStorage.setItem('fake-admin-session', JSON.stringify(fakeAdminSession));
-        
-        console.log('✅ Admin logged in (hardcoded)', {
-          email: normalizedEmail,
-          role: 'admin',
-        });
-        
-        setLoading(false);
-        // Close modal and trigger re-check in App.js
-        if (onClose) {
-          onClose();
-          // Small delay to ensure AsyncStorage write completes
-          setTimeout(() => {
-            if (onNavigate) onNavigate('main');
-          }, 100);
-        }
-        return;
-      }
-
-      console.log('🔐 Login attempt (Supabase)', {
-        email: normalizedEmail,
-        passwordLength: password.length,
-        passwordProvided: Boolean(password),
-      });
-      
       // Clear any stale session
       await supabase.auth.signOut();
       
@@ -126,13 +82,7 @@ export default function LoginScreen({ onNavigate, onClose }) {
       });
 
       if (signInError) {
-        console.error('❌ Login failed:', {
-          email: normalizedEmail,
-          passwordLength: password.length,
-          message: signInError.message,
-          status: signInError.status,
-          code: signInError.code,
-        });
+        console.error('Login failed:', signInError.message);
 
         // Provide helpful error messages
         if (signInError.status === 400 && signInError.message?.includes('Invalid login credentials')) {
@@ -143,12 +93,6 @@ export default function LoginScreen({ onNavigate, onClose }) {
           setError(`Login failed: ${signInError.message || 'Invalid credentials'}`);
         }
       } else {
-        console.log('✅ Login successful (Supabase)', {
-          email: signInData?.user?.email,
-          userId: signInData?.session?.user?.id,
-          isAdmin: signInData?.user?.email === 'admin@gmail.com',
-        });
-
         // Supabase auth state change will handle role resolution and navigation
         // Just close modal and let App.js handle the rest
         setLoading(false);
@@ -162,11 +106,7 @@ export default function LoginScreen({ onNavigate, onClose }) {
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
-      console.error('Login error:', {
-        email: normalizedEmail,
-        passwordLength: password.length,
-        message: err?.message,
-      });
+      console.error('Login error:', err?.message);
     } finally {
       setLoading(false);
     }

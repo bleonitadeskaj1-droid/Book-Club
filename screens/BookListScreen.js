@@ -15,6 +15,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { supabase } from '../supabase';
+import { DEMO_BOOKS } from '../data/demoBooks';
 import { interactionService } from '../services/interactionService';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -75,6 +76,7 @@ const COLORS = {
 
 export default function BookListScreen({ session, onLogout, onSelectBook, onMenuPress, onRequireAuth, showProfileModal, showLoginModal }) {
   const [books, setBooks] = useState([]);
+  const [usingDemo, setUsingDemo] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBook, setSelectedBook] = useState(null);
@@ -109,20 +111,24 @@ export default function BookListScreen({ session, onLogout, onSelectBook, onMenu
     setLoading(true);
     try {
       // Fetch ALL books from Supabase without pagination
-      const { data, error, count } = await supabase
+      const { data, error } = await supabase
         .from('books')
         .select('*', { count: 'exact' })
         .order('genre', { ascending: true })
         .order('title', { ascending: true });
 
       if (error) {
-        console.error('Error fetching books:', error);
-        Alert.alert('Error', 'Failed to load books: ' + error.message);
-        setBooks([]);
+        console.error('Error fetching books:', error.message);
+        setBooks(DEMO_BOOKS);
+        setUsingDemo(true);
+      } else if (!data || data.length === 0) {
+        setBooks(DEMO_BOOKS);
+        setUsingDemo(true);
       } else {
-        const bookCount = data?.length || 0;
-        console.log(`✅ Loaded ${bookCount} books from Supabase`, { count, hasData: bookCount > 0 });
-        setBooks(data || []);
+        const bookCount = data.length;
+        console.log(`Loaded ${bookCount} books from Supabase`);
+        setUsingDemo(false);
+        setBooks(data);
         
         // Fetch reading status for ALL books if user is logged in
         if (session?.user?.id && isValidUuid(session.user.id)) {
@@ -130,9 +136,9 @@ export default function BookListScreen({ session, onLogout, onSelectBook, onMenu
         }
       }
     } catch (err) {
-      console.error('Exception fetching books:', err);
-      Alert.alert('Error', 'Failed to load books');
-      setBooks([]);
+      console.error('Exception fetching books:', err?.message || err);
+      setBooks(DEMO_BOOKS);
+      setUsingDemo(true);
     } finally {
       setLoading(false);
     }
@@ -579,6 +585,12 @@ export default function BookListScreen({ session, onLogout, onSelectBook, onMenu
               />
             </View>
 
+            {usingDemo && (
+              <Text style={styles.demoNote}>
+                Sample library. Add your Supabase project in .env to use the live catalog.
+              </Text>
+            )}
+
             {/* Genre Filter */}
             <ScrollView 
               horizontal 
@@ -980,6 +992,13 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: COLORS.text,
   },
+  demoNote: {
+    marginHorizontal: 16,
+    marginTop: 4,
+    color: COLORS.textSecondary,
+    fontSize: 13,
+    lineHeight: 18,
+  },
   genreFilterContainer: {
     paddingHorizontal: 12,
     paddingVertical: 16,
@@ -1013,11 +1032,11 @@ const styles = StyleSheet.create({
   genreChipText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#D4C5A9',
+    color: '#5c5346',
     letterSpacing: 0.2,
   },
   genreChipTextActive: {
-    color: '#ffffff',
+    color: '#1a1a1a',
     fontWeight: '700',
     letterSpacing: 0.2,
   },
@@ -1079,6 +1098,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 24,
     paddingBottom: 20,
+    width: '100%',
+    flexGrow: 1,
   },
   bookCardTouchable: {
     width: '100%',
@@ -1217,6 +1238,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   emptyContainer: {
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 40,

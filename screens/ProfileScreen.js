@@ -343,9 +343,6 @@ export default function ProfileScreen({ session, onLogout, onClose, onRead = nul
 
   // Role-aware close behavior
   const handleClose = () => {
-    const email = session?.user?.email || '';
-    const isAdmin = email === 'admin@gmail.com';
-    // Only invoke close if provided by parent; parent controls navigation.
     if (typeof onClose === 'function') {
       onClose();
     }

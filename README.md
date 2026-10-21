@@ -1,112 +1,55 @@
-# Book Club App
+# Book Club
 
-A comprehensive book club application built with React Native (Expo) and Supabase.
+A book club app for browsing a shared library, tracking what you are reading, writing reviews, and managing the catalog. Built with Expo and Supabase.
 
-## Features
+## What you can do
 
-### Public Features
-- Browse book collection
-- Search books by title or author
-- View book details and content
+- Browse and search books without an account
+- Register, sign in, and reset a password
+- Save a book as reading, finished, or to-read, and keep a page
+- Review and rate a book, and mark favorites
+- As an admin, add and edit books, see members, and remove reviews
 
-### Authenticated User Features
-- User registration and login
-- Password reset functionality
-- Read books with progress tracking
-- Write and view book reviews
-- Rate books (1-5 stars)
-- Add/remove books from favorites
-- Personal reading progress
-- Profile dashboard with reading lists (Currently Reading, Finished, To Read)
-- Organized reviews and favorites management
+Admin is a role on `profiles`, not an email address. After the first signup, promote that account in the Supabase SQL editor:
 
-### Admin Features
-- Full book management (CRUD operations)
-- User management and role assignment
-- Review moderation
-- Analytics dashboard
-- Content management
+```sql
+update public.profiles
+set role = 'admin'
+where id = (
+  select id from auth.users where email = 'you@example.com'
+);
+```
 
-## Tech Stack
+## Stack
 
-- **Frontend**: React Native with Expo
-- **Backend**: Supabase (PostgreSQL, Authentication, RLS)
-- **UI**: Custom responsive design with gradients
-- **Icons**: Expo Vector Icons
-- **State Management**: React hooks
+- Expo SDK 54, React Native, React 19
+- Supabase Auth and Postgres, with row-level security
+- The app uses only the anon key. Database rules decide what each person can change.
 
-## Database Schema
+## Setup
 
-The app uses the existing Supabase database with these tables:
-- `books` - Book catalog
-- `profiles` - User profiles and roles
-- `reviews` - Book reviews and ratings
-- `user_favorites` - User's favorite books
-- `user_reading_status` - Reading progress tracking
+1. Create a Supabase project and turn off email confirmation while you are developing.
+2. Run `supabase/schema.sql` once in the SQL editor.
+3. Copy `.env.example` to `.env` and set:
 
-## Getting Started
+```
+EXPO_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+```
 
-1. **Prerequisites**
-   - Node.js and npm
-   - Expo CLI
-   - Supabase account
+The app reads those values from `.env`. Until they point at a live project, the home screen shows a small sample library so the app can still be opened and read.
 
-2. **Installation**
-   ```bash
-   npm install
-   ```
+4. Install and start:
 
-3. **Configuration**
-   - Supabase configuration is already set up in `supabase.js`
-   - Database schema and RLS policies are pre-configured
+```bash
+npm install
+npx expo start
+```
 
-4. **Running the App**
-   ```bash
-   npm start
-   ```
+Press `w` for the browser, or scan the QR code with Expo Go.
 
-5. **Testing**
-   - Web: Press `w` in Expo CLI
-   - Mobile: Scan QR code with Expo Go app
-
-## User Roles & Navigation
-
-- **User**: Can browse books, read, review, and track progress
-  - **Default Landing Tab**: Profile (after login)
-  - **Available Tabs**: Books (browse), Profile (personal dashboard)
-  
-- **Admin**: Full access to manage books, users, and reviews
-  - **Email-Based Access**: admin@gmail.com only
-  - **Default Landing Tab**: Admin (after login)
-  - **Available Tabs**: Books, Profile, Admin (management), Users, Reviews, Analytics
+If this database already exists, do not run the full schema again. Promote an admin with the SQL above, and add any missing profile columns from the Supabase dashboard.
 
 ## Security
 
-- Row Level Security (RLS) enabled on all tables
-- Authentication required for user-specific actions
-- Admin-only operations protected by email-based role checks (admin@gmail.com)
-- Platform-aware logout (web: window.confirm, mobile: native Alert)
-- Session management via Supabase auth with global state tracking
-
-## Design & Styling
-
-- **Color Palette**: Professional cream theme
-  - Primary: #E8DCC4 (warm cream)
-  - Primary Dark: #D4C5A9 (muted cream)
-  - Primary Light: #F5F5DC (light cream)
-  - Status: Reading (orange #f59e0b), Finished (green #10b981)
-  
-- **Typography & Spacing**: Professional, readable design with consistent sizing
-- **Shadows & Borders**: Subtle depth and visual hierarchy
-- **Responsive Layout**: Fixed card width (320px) for consistency across all devices
-
-## Development Notes
-
-- All buttons are fully functional and responsive
-- Database operations use proper error handling with try/catch
-- Authentication state is managed globally via React hooks
-- Components are modular and reusable
-- Code follows React Native best practices
-- Responsive design ensures identical layout on web and mobile
-- Platform detection handles OS-specific behaviors (web vs native)
-- Unified UI across platforms with cream color palette
+Rotate the Supabase service-role key in the project settings. An older version of this repository contained that key in the client. The service role must never ship in the app. The anon key is safe to publish because row-level security limits it.

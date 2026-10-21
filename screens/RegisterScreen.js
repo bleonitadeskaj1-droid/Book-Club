@@ -81,12 +81,7 @@ export default function RegisterScreen({ onNavigate, onClose }) {
     
     try {
       const normalizedEmail = email.trim().toLowerCase();
-      
-      console.log('📝 Signup attempt:', { 
-        email: normalizedEmail,
-        passwordLength: password.length 
-      });
-      
+
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: normalizedEmail,
         password,

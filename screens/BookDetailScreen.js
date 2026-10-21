@@ -212,17 +212,14 @@ export default function BookDetailScreen({ book, session, onClose, onRead, onReq
 
   if (loading) {
     return (
-      <Modal visible={true} animationType="slide" transparent={false}>
-        <View style={styles.container}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-        </View>
-      </Modal>
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
     );
   }
 
   return (
-    <Modal visible={true} animationType="slide" transparent={false}>
-      <View style={styles.container}>
+    <View style={styles.container}>
         {/* Header with close button */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -440,13 +437,13 @@ export default function BookDetailScreen({ book, session, onClose, onRead, onReq
           </View>
         </Modal>
       </View>
-    </Modal>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    width: '100%',
     backgroundColor: COLORS.background,
   },
   header: {
